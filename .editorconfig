@@ -10,3 +10,6 @@ end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = false
 insert_final_newline = false
+# por padrão o Prettier usa as configurações daqui.
+# Inseri a configuração abaixo, pois prefiro single quote.
+quote_type = single
