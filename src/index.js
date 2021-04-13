@@ -9,12 +9,23 @@ app.use(express.json());
 
 const users = [];
 
-function checksExistsUserAccount(request, response, next) {
+// Middleware
+function checksIfUserAccountExists(request, response, next) {
   // Complete aqui
 }
 
 app.post('/users', (request, response) => {
   const { name, username } = request.body;
+
+  const userNameAlreadyExists = users.find(
+    (user) => user.username === username
+  );
+
+  if (userNameAlreadyExists) {
+    return response.status(400).json({
+      error: 'Mensagem do erro',
+    });
+  }
 
   const user = {
     id: uuidv4(),
@@ -28,23 +39,23 @@ app.post('/users', (request, response) => {
   return response.status(201).json(user);
 });
 
-app.get('/todos', checksExistsUserAccount, (request, response) => {
+app.get('/todos', checksIfUserAccountExists, (request, response) => {
   // Complete aqui
 });
 
-app.post('/todos', checksExistsUserAccount, (request, response) => {
+app.post('/todos', checksIfUserAccountExists, (request, response) => {
   // Complete aqui
 });
 
-app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
+app.put('/todos/:id', checksIfUserAccountExists, (request, response) => {
   // Complete aqui
 });
 
-app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
+app.patch('/todos/:id/done', checksIfUserAccountExists, (request, response) => {
   // Complete aqui
 });
 
-app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
+app.delete('/todos/:id', checksIfUserAccountExists, (request, response) => {
   // Complete aqui
 });
 
