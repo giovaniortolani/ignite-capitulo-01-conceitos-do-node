@@ -4,7 +4,7 @@ const { validate } = require('uuid');
 const app = require('../index');
 
 describe('Todos', () => {
-  it.only("should be able to list all user's todo", async () => {
+  it("should be able to list all user's todo", async () => {
     const userResponse = await request(app).post('/users').send({
       name: 'John Doe',
       username: 'user1',
@@ -27,7 +27,7 @@ describe('Todos', () => {
     expect(response.body).toEqual(expect.arrayContaining([todoResponse.body]));
   });
 
-  it('should be able to create a new todo', async () => {
+  it.only('should be able to create a new todo', async () => {
     const userResponse = await request(app).post('/users').send({
       name: 'John Doe',
       username: 'user2',
