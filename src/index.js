@@ -9,18 +9,27 @@ app.use(express.json());
 
 const users = [];
 
+function checkIfuserNameAlreadyExists(username) {
+  return users.find((user) => user.username === username);
+}
+
 // Middleware
 function checksIfUserAccountExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const user = checkIfuserNameAlreadyExists(username);
+  if (!user) {
+    return response.status(404).json({ error: 'Mensagem do erro' });
+  }
+
+  request.user = user;
+  next();
 }
 
 app.post('/users', (request, response) => {
   const { name, username } = request.body;
 
-  const userNameAlreadyExists = users.find(
-    (user) => user.username === username
-  );
-
+  const userNameAlreadyExists = checkIfuserNameAlreadyExists(username);
   if (userNameAlreadyExists) {
     return response.status(400).json({
       error: 'Mensagem do erro',
@@ -33,7 +42,6 @@ app.post('/users', (request, response) => {
     username,
     todos: [],
   };
-
   users.push(user);
 
   return response.status(201).json(user);
