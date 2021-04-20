@@ -9,16 +9,20 @@ app.use(express.json());
 
 const users = [];
 
-// Helper
-function checkIfuserNameAlreadyExists(username) {
+/* Helpers */
+function findUserAccountByUsername(username) {
   return users.find((user) => user.username === username);
+}
+
+function findTodoById(id, todos) {
+  return todos.find((todo) => todo.id === id);
 }
 
 /* Middlewares */
 function checksIfUserAccountExists(request, response, next) {
   const { username } = request.headers;
 
-  const user = checkIfuserNameAlreadyExists(username);
+  const user = findUserAccountByUsername(username);
   if (!user) {
     return response.status(404).json({ error: 'User does not exist' });
   }
@@ -34,7 +38,7 @@ function checksIfTodoExists(request, response, next) {
     user,
   } = request;
 
-  const todo = user.todos.find((todo) => todo.id === id);
+  const todo = findTodoById(id, user.todos);
   if (!todo) {
     return response.status(404).json({ error: 'Todo does not exist' });
   }
@@ -47,8 +51,8 @@ function checksIfTodoExists(request, response, next) {
 app.post('/users', (request, response) => {
   const { name, username } = request.body;
 
-  const userNameAlreadyExists = checkIfuserNameAlreadyExists(username);
-  if (userNameAlreadyExists) {
+  const userAlreadyExists = findUserAccountByUsername(username);
+  if (userAlreadyExists) {
     return response.status(400).json({
       error: 'User already exists',
     });
@@ -101,7 +105,7 @@ app.put(
     todo.title = title;
     todo.deadline = new Date(deadline);
 
-    response.json(todo);
+    return response.json(todo);
   }
 );
 
@@ -123,7 +127,15 @@ app.delete(
   checksIfUserAccountExists,
   checksIfTodoExists,
   (request, response) => {
-    // Complete aqui
+    const {
+      params: { id },
+      user,
+    } = request;
+
+    const index = user.todos.findIndex((todo) => todo.id === id);
+    user.todos.splice(index, 1);
+
+    return response.status(204).send();
   }
 );
 
