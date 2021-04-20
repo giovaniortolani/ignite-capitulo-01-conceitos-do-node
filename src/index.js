@@ -9,30 +9,52 @@ app.use(express.json());
 
 const users = [];
 
-function checkIfuserNameAlreadyExists(username) {
+/* Helpers */
+function findUserAccountByUsername(username) {
   return users.find((user) => user.username === username);
 }
 
-// Middleware
+function findTodoById(id, todos) {
+  return todos.find((todo) => todo.id === id);
+}
+
+/* Middlewares */
 function checksIfUserAccountExists(request, response, next) {
   const { username } = request.headers;
 
-  const user = checkIfuserNameAlreadyExists(username);
+  const user = findUserAccountByUsername(username);
   if (!user) {
-    return response.status(404).json({ error: 'Mensagem do erro' });
+    return response.status(404).json({ error: 'User does not exist' });
   }
 
   request.user = user;
+
+  next();
+}
+
+function checksIfTodoExists(request, response, next) {
+  const {
+    params: { id },
+    user,
+  } = request;
+
+  const todo = findTodoById(id, user.todos);
+  if (!todo) {
+    return response.status(404).json({ error: 'Todo does not exist' });
+  }
+
+  request.todo = todo;
+
   next();
 }
 
 app.post('/users', (request, response) => {
   const { name, username } = request.body;
 
-  const userNameAlreadyExists = checkIfuserNameAlreadyExists(username);
-  if (userNameAlreadyExists) {
+  const userAlreadyExists = findUserAccountByUsername(username);
+  if (userAlreadyExists) {
     return response.status(400).json({
-      error: 'Mensagem do erro',
+      error: 'User already exists',
     });
   }
 
@@ -69,16 +91,52 @@ app.post('/todos', checksIfUserAccountExists, (request, response) => {
   return response.status(201).json(todo);
 });
 
-app.put('/todos/:id', checksIfUserAccountExists, (request, response) => {
-  // Complete aqui
-});
+app.put(
+  '/todos/:id',
+  checksIfUserAccountExists,
+  checksIfTodoExists,
+  (request, response) => {
+    const {
+      todo,
+      body: { title, deadline },
+      params: { id },
+    } = request;
 
-app.patch('/todos/:id/done', checksIfUserAccountExists, (request, response) => {
-  // Complete aqui
-});
+    todo.title = title;
+    todo.deadline = new Date(deadline);
 
-app.delete('/todos/:id', checksIfUserAccountExists, (request, response) => {
-  // Complete aqui
-});
+    return response.json(todo);
+  }
+);
+
+app.patch(
+  '/todos/:id/done',
+  checksIfUserAccountExists,
+  checksIfTodoExists,
+  (request, response) => {
+    const { todo } = request;
+
+    todo.done = true;
+
+    return response.json(todo);
+  }
+);
+
+app.delete(
+  '/todos/:id',
+  checksIfUserAccountExists,
+  checksIfTodoExists,
+  (request, response) => {
+    const {
+      params: { id },
+      user,
+    } = request;
+
+    const index = user.todos.findIndex((todo) => todo.id === id);
+    user.todos.splice(index, 1);
+
+    return response.status(204).send();
+  }
+);
 
 module.exports = app;
