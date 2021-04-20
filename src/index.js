@@ -14,7 +14,7 @@ function checkIfuserNameAlreadyExists(username) {
   return users.find((user) => user.username === username);
 }
 
-// Middleware
+/* Middlewares */
 function checksIfUserAccountExists(request, response, next) {
   const { username } = request.headers;
 
@@ -24,6 +24,22 @@ function checksIfUserAccountExists(request, response, next) {
   }
 
   request.user = user;
+
+  next();
+}
+
+function checksIfTodoExists(request, response, next) {
+  const {
+    params: { id },
+    user,
+  } = request;
+
+  const todo = user.todos.find((todo) => todo.id === id);
+  if (!todo) {
+    return response.status(404).json({ error: 'Todo does not exist' });
+  }
+
+  request.todo = todo;
 
   next();
 }
@@ -71,30 +87,44 @@ app.post('/todos', checksIfUserAccountExists, (request, response) => {
   return response.status(201).json(todo);
 });
 
-app.put('/todos/:id', checksIfUserAccountExists, (request, response) => {
-  const {
-    user,
-    body: { title, deadline },
-    params: { id },
-  } = request;
+app.put(
+  '/todos/:id',
+  checksIfUserAccountExists,
+  checksIfTodoExists,
+  (request, response) => {
+    const {
+      todo,
+      body: { title, deadline },
+      params: { id },
+    } = request;
 
-  const todo = user.todos.find((todo) => todo.id === id);
-  if (!todo) {
-    return response.status(404).json({ error: 'Todo does not exist' });
+    todo.title = title;
+    todo.deadline = new Date(deadline);
+
+    response.json(todo);
   }
+);
 
-  todo.title = title;
-  todo.deadline = new Date(deadline);
+app.patch(
+  '/todos/:id/done',
+  checksIfUserAccountExists,
+  checksIfTodoExists,
+  (request, response) => {
+    const { todo } = request;
 
-  response.json(todo);
-});
+    todo.done = true;
 
-app.patch('/todos/:id/done', checksIfUserAccountExists, (request, response) => {
-  // Complete aqui
-});
+    return response.json(todo);
+  }
+);
 
-app.delete('/todos/:id', checksIfUserAccountExists, (request, response) => {
-  // Complete aqui
-});
+app.delete(
+  '/todos/:id',
+  checksIfUserAccountExists,
+  checksIfTodoExists,
+  (request, response) => {
+    // Complete aqui
+  }
+);
 
 module.exports = app;
