@@ -9,6 +9,7 @@ app.use(express.json());
 
 const users = [];
 
+// Helper
 function checkIfuserNameAlreadyExists(username) {
   return users.find((user) => user.username === username);
 }
@@ -19,10 +20,11 @@ function checksIfUserAccountExists(request, response, next) {
 
   const user = checkIfuserNameAlreadyExists(username);
   if (!user) {
-    return response.status(404).json({ error: 'Mensagem do erro' });
+    return response.status(404).json({ error: 'User does not exist' });
   }
 
   request.user = user;
+
   next();
 }
 
@@ -32,7 +34,7 @@ app.post('/users', (request, response) => {
   const userNameAlreadyExists = checkIfuserNameAlreadyExists(username);
   if (userNameAlreadyExists) {
     return response.status(400).json({
-      error: 'Mensagem do erro',
+      error: 'User already exists',
     });
   }
 
@@ -70,7 +72,21 @@ app.post('/todos', checksIfUserAccountExists, (request, response) => {
 });
 
 app.put('/todos/:id', checksIfUserAccountExists, (request, response) => {
-  // Complete aqui
+  const {
+    user,
+    body: { title, deadline },
+    params: { id },
+  } = request;
+
+  const todo = user.todos.find((todo) => todo.id === id);
+  if (!todo) {
+    return response.status(404).json({ error: 'Todo does not exist' });
+  }
+
+  todo.title = title;
+  todo.deadline = new Date(deadline);
+
+  response.json(todo);
 });
 
 app.patch('/todos/:id/done', checksIfUserAccountExists, (request, response) => {

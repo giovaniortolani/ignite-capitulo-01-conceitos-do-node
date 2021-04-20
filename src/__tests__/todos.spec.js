@@ -24,10 +24,13 @@ describe('Todos', () => {
       .get('/todos')
       .set('username', userResponse.body.username);
 
+    // https://jestjs.io/docs/expect#expectarraycontainingarray
+    // O received array (response.body) contém todos os elementos do expected array (todoResponse.body) e ainda pode ter mais alguns, que não estão no expected.
+    // Isto é, o expected array é um subconjunto do received array.
     expect(response.body).toEqual(expect.arrayContaining([todoResponse.body]));
   });
 
-  it.only('should be able to create a new todo', async () => {
+  it('should be able to create a new todo', async () => {
     const userResponse = await request(app).post('/users').send({
       name: 'John Doe',
       username: 'user2',
