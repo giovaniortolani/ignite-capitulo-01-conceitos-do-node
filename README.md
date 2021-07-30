@@ -29,7 +29,7 @@ ___
 
 Uma aplicação para gerenciamento de tarefas (i.e. to-dos) de pessoas.
 
-Realiza a criação de um usuário com, bem como o CRUD dos to-dos.
+Realiza a criação de um usuário bem como o CRUD dos to-dos.
 
 ## :arrow_forward: Instalação
 
